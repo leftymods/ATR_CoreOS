@@ -1,17 +1,13 @@
 #!/usr/bin/env bash
 set -e
-# Build U‑Boot if not present
-if [ ! -f u-boot/u-boot ]; then
-  echo "Building U‑Boot..."
-  make -C u-boot distclean
-  make -C u-boot ARCH=arm atr_station_defconfig
-  make -C u-boot -j$(nproc) ARCH=arm CROSS_COMPILE=aarch64-linux-gnu-
-fi
-# Copy binary for FIP signing
-cp u-boot/u-boot u-boot/fip/sei610/u-boot.bin
-# Build signed FIP (using dummy kernel image for BL33)
-make -C u-boot/fip/sei610 clean all BL33=$(pwd)/dummy.bin
+# Build U-Boot first
+make -C u-boot atr_station_defconfig
+make -C u-boot -j$(nproc) CROSS_COMPILE=aarch64-linux-gnu-
+# Get the built U-Boot with DTB for BL33
+UBOOT_BIN="u-boot/u-boot-dtb.bin"
+# Sign FIP using atr_station directory (same as sei610 for SM1 SoC)
+make -C u-boot/fip/atr_station clean all BL33="$(realpath "$UBOOT_BIN")"
 # Collect results
 mkdir -p u-boot/fip_output
-cp u-boot/fip/sei610/*.bin u-boot/fip_output/
-echo "Signed binaries are in u-boot/fip_output"
+cp u-boot/fip/atr_station/u-boot.bin u-boot/fip_output/u-boot.bin
+echo "Signed binary is in u-boot/fip_output/u-boot.bin"

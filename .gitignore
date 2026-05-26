@@ -1,0 +1,6 @@
+CoreOS/
+dummy.bin
+u-boot/fip_output/
+*.o
+*.cmd
+CoreOS/
